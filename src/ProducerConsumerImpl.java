@@ -1,54 +1,37 @@
 import java.util.Random;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ProducerConsumerImpl {
 
-    private final Lock aLock;
     private Integer queue;
     private final Random random;
-    private final Condition bufferNotFull;
-    private final Condition bufferNotEmpty;
 
     public ProducerConsumerImpl() {
-        this.aLock = new ReentrantLock();
         this.random = new Random();
-        this.bufferNotFull = aLock.newCondition();
-        bufferNotEmpty = aLock.newCondition();
     }
 
     public void put() throws InterruptedException {
-        aLock.lock();
-        try {
-            while (queue != null) {
-                System.out.println("Full");
-                bufferNotEmpty.await();
+        while (queue != null) {
+            synchronized (this) {
+                wait();
             }
-            int number = random.nextInt();
-            queue = number;
-            System.out.printf("%s added %d into queue %n", Thread.currentThread().getName(), number);
-            bufferNotFull.signalAll();
-        } finally {
-            aLock.unlock();
+        }
+        queue = random.nextInt();
+        System.out.println("Add " + queue);
+        synchronized (this) {
+            notify();
         }
     }
 
     public void get() throws InterruptedException {
-        aLock.lock();
-        try {
-            while (queue == null) {
-                System.out.println("Empty");
-                bufferNotFull.await();
+        while (queue == null) {
+            synchronized (this) {
+                wait();
             }
-            final Integer value = queue;
-            queue = null;
-            if (value != null) {
-                System.out.printf("%s consumed %d from queue %n", Thread.currentThread().getName(), value);
-                bufferNotEmpty.signalAll();
-            }
-        } finally {
-            aLock.unlock();
+        }
+        System.out.println("Read " + queue);
+        queue = null;
+        synchronized (this) {
+            notify();
         }
     }
 }
