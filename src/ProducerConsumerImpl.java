@@ -1,5 +1,3 @@
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -7,7 +5,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ProducerConsumerImpl {
 
-    private final int capacity = 2;
     private final Lock aLock;
     private Integer queue;
     private final Random random;
